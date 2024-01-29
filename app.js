@@ -2,7 +2,8 @@ require('dotenv').config()
 
 const { App } = require('@slack/bolt');
 
-// ボットトークンと Signing Secret を使ってアプリを初期化します
+const bot_user_id = process.env.SLACK_BOT_USER_ID
+
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -11,16 +12,13 @@ const app = new App({
   port: process.env.PORT || 3000
 });
 
-app.message(async ({ message, say }) => {
-  // イベントがトリガーされたチャンネルに say() でメッセージを送信します
-    console.log(message)
-    console.log(say)
+const mention = new RegExp(`^<@${bot_user_id}>`)
+
+app.message(mention, async ({ message, say }) => {
   await say(`hello`);
 });
 
 (async () => {
-  // アプリを起動します
   await app.start();
-
   console.log('⚡️ Bolt app is running!');
 })();
