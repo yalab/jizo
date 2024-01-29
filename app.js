@@ -4,6 +4,8 @@ const { App } = require('@slack/bolt');
 
 const bot_user_id = process.env.SLACK_BOT_USER_ID
 
+const threads_ts = {}
+
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -12,15 +14,24 @@ const app = new App({
   port: process.env.PORT || 3000
 });
 
-const mention = new RegExp(`^<@${bot_user_id}>`)
-
-app.message(mention, async ({ event, message, say }) => {
-  const threadTs = event.thread_ts ? event.thread_ts : event.ts;
+app.event('app_mention', async ({ event, message, say }) => {
+  const thread_ts = event.thread_ts ? event.thread_ts : event.ts;
 
   await say({
-	text: `Hello, <@${event.user}>!`,
-	thread_ts: threadTs
+    text: `Hello, <@${event.user}>!`,
+    thread_ts: thread_ts
   });
+
+  threads_ts[thread_ts] = true
+});
+
+app.message(async ({ message, say }) => {
+  if (message.thread_ts && threads_ts[message.thread_ts]) {
+    await say({
+      text: `${message.text}  <@${message.user}>!`,
+      thread_ts: message.thread_ts
+    });
+  }
 });
 
 (async () => {
