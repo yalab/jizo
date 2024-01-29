@@ -14,8 +14,13 @@ const app = new App({
 
 const mention = new RegExp(`^<@${bot_user_id}>`)
 
-app.message(mention, async ({ message, say }) => {
-  await say(`hello`);
+app.message(mention, async ({ event, message, say }) => {
+  const threadTs = event.thread_ts ? event.thread_ts : event.ts;
+
+  await say({
+	text: `Hello, <@${event.user}>!`,
+	thread_ts: threadTs
+  });
 });
 
 (async () => {
