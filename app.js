@@ -1,11 +1,11 @@
 require('dotenv').config()
 
-const { App } = require('@slack/bolt');
+const { App } = require('@slack/bolt')
+const { OpenAI } = require('openai')
 
-const bot_user_id = process.env.SLACK_BOT_USER_ID
+const openai = new OpenAI({"apiKey": process.env.OPENAI_API_KEY})
 
 const threads_ts = {}
-
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -14,11 +14,18 @@ const app = new App({
   port: process.env.PORT || 3000
 });
 
-app.event('app_mention', async ({ event, message, say }) => {
+app.event('app_mention', async ({ event, say }) => {
   const thread_ts = event.thread_ts ? event.thread_ts : event.ts;
+  const message = event.text.substring(15)
+  console.log(message)
+
+  const chatCompletion = await openai.chat.completions.create({
+      messages: [{ role: 'user', content: message }],
+      model: 'gpt-3.5-turbo',
+  })
 
   await say({
-    text: `Hello, <@${event.user}>!`,
+    text: chatCompletion.choices[0].message.content,
     thread_ts: thread_ts
   });
 
