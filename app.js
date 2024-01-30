@@ -19,7 +19,8 @@ const postOpenAI = async (content) => {
       messages: [{ role: 'user', content: content }],
       model: 'gpt-3.5-turbo',
   })
-  return chatCompletion.choices[0].message.content
+  const message = chatCompletion.choices[0].message
+  return message.content
 }
 
 app.event('app_mention', async ({ event, say }) => {
@@ -32,8 +33,9 @@ app.event('app_mention', async ({ event, say }) => {
 
 app.message(async ({ message, say }) => {
   if (message.thread_ts && threads_ts[message.thread_ts]) {
+    const text = await postOpenAI(message.text)
     await say({
-      text: `${message.text}  <@${message.user}>!`,
+      text: text,
       thread_ts: message.thread_ts
     });
   }
