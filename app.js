@@ -1,21 +1,10 @@
 require('dotenv').config()
 
-const Redis = require('redis')
-console.log(process.env.REDIS_URL)
-const redis = Redis.createClient({url: process.env.REDIS_URL})
-
-;(async () => {
-  await redis.connect()
-  await redis.set('key', 'value')
-  const value = await redis.get('key')
-  console.log(value)
-  redis.disconnect()
-})()
-
 const { App } = require('@slack/bolt')
 const { OpenAI } = require('openai')
 
 const openai = new OpenAI({"apiKey": process.env.OPENAI_API_KEY})
+const redis = require('redis').createClient({url: process.env.REDIS_URL})
 
 const threads_ts = {}
 const app = new App({
@@ -37,20 +26,27 @@ const postOpenAI = async (messages) => {
 
 app.event('app_mention', async ({ event, say }) => {
   const thread_ts = event.thread_ts ? event.thread_ts : event.ts;
-  const message = event.text.substring(15)
-  const text = await postOpenAI([{ role: 'user', content: message }])
+  const message = { role: 'user', content: event.text.substring(15) }
+  await redis.connect()
+  const text = await postOpenAI([message])
+  redis.set(String(thread_ts), JSON.stringify([message, { role: 'assistant', content: text}]), 3600)
   await say({ text: text, thread_ts: thread_ts });
-  threads_ts[thread_ts] = true
+  const v = await redis.get(thread_ts)    
+  redis.disconnect()
 });
 
 app.message(async ({ message, say }) => {
-  if (message.thread_ts && threads_ts[message.thread_ts]) {
-    const text = await postOpenAI([{ role: 'user', content: message.text }])
-    await say({
-      text: text,
-      thread_ts: message.thread_ts
-    });
-  }
+  if (!message.thread_ts) { return }
+  await redis.connect()
+  const str = await redis.get(String(message.thread_ts))
+  if (!str) { return }
+  const messages = JSON.parse(str)
+  messages.push({ role: 'user', content: message.text })
+  const text = await postOpenAI(messages)
+  messages.push({ role: 'assistant', content: text })
+  await redis.set(String(message.thread_ts), JSON.stringify(messages), 3600)
+  redis.disconnect()
+  await say({text: text, thread_ts: message.thread_ts})
 });
 
 (async () => {
