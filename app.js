@@ -1,5 +1,17 @@
 require('dotenv').config()
 
+const Redis = require('redis')
+console.log(process.env.REDIS_URL)
+const redis = Redis.createClient({url: process.env.REDIS_URL})
+
+;(async () => {
+  await redis.connect()
+  await redis.set('key', 'value')
+  const value = await redis.get('key')
+  console.log(value)
+  redis.disconnect()
+})()
+
 const { App } = require('@slack/bolt')
 const { OpenAI } = require('openai')
 
