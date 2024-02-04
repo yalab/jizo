@@ -26,9 +26,9 @@ const app = new App({
   port: process.env.PORT || 3000
 });
 
-const postOpenAI = async (content) => {
+const postOpenAI = async (messages) => {
   const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: content }],
+      messages: messages,
       model: 'gpt-3.5-turbo',
   })
   const message = chatCompletion.choices[0].message
@@ -38,14 +38,14 @@ const postOpenAI = async (content) => {
 app.event('app_mention', async ({ event, say }) => {
   const thread_ts = event.thread_ts ? event.thread_ts : event.ts;
   const message = event.text.substring(15)
-  const text = await postOpenAI(message)
+  const text = await postOpenAI([{ role: 'user', content: message }])
   await say({ text: text, thread_ts: thread_ts });
   threads_ts[thread_ts] = true
 });
 
 app.message(async ({ message, say }) => {
   if (message.thread_ts && threads_ts[message.thread_ts]) {
-    const text = await postOpenAI(message.text)
+    const text = await postOpenAI([{ role: 'user', content: message.text }])
     await say({
       text: text,
       thread_ts: message.thread_ts
