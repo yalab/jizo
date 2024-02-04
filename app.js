@@ -10,7 +10,7 @@ const threads_ts = {}
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
-  socketMode: true,
+  socketMode: process.env.SOCKET_MODE === '1',
   appToken: process.env.SLACK_APP_TOKEN,
   port: process.env.PORT || 3000
 });
