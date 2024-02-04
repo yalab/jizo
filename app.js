@@ -19,7 +19,7 @@ const app = new App({
       method: ['GET', 'POST'],
       handler: (req, res) => {
         res.writeHead(200);
-        res.end('Hello');
+        res.end(`{'challenge' : ''}`)
       },
     },
   ]
