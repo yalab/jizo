@@ -12,7 +12,17 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   socketMode: process.env.SOCKET_MODE === '1',
   appToken: process.env.SLACK_APP_TOKEN,
-  port: process.env.PORT || 3000
+  port: process.env.PORT || 3000,
+  customRoutes: [
+    {
+      path: '/',
+      method: ['GET'],
+      handler: (req, res) => {
+        res.writeHead(200);
+        res.end('Hello');
+      },
+    },
+  ]
 });
 
 const postOpenAI = async (messages) => {
