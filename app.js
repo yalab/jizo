@@ -16,7 +16,7 @@ const app = new App({
   customRoutes: [
     {
       path: '/',
-      method: ['GET'],
+      method: ['GET', 'POST'],
       handler: (req, res) => {
         res.writeHead(200);
         res.end('Hello');
