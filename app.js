@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-const { App } = require('@slack/bolt')
+const { App, LogLevel } = require('@slack/bolt')
 const { OpenAI } = require('openai')
 
 const openai = new OpenAI({"apiKey": process.env.OPENAI_API_KEY})
@@ -13,6 +13,7 @@ const app = new App({
   socketMode: process.env.SOCKET_MODE === '1',
   appToken: process.env.SLACK_APP_TOKEN,
   port: process.env.PORT || 3000,
+  logLevel: process.env.LOG_LEVEL || LogLevel.INFO,
   customRoutes: [
     {
       path: '/',
