@@ -61,6 +61,11 @@ app.message(async ({ message, say }) => {
 });
 
 (async () => {
-  await app.start();
-  console.log('⚡️ Bolt app is running!');
+  try {
+    await redis.disconnect();
+  } catch (e) {
+    console.error(e)
+  }
+  await app.start()
+  console.log('⚡️ Bolt app is running!')
 })();
