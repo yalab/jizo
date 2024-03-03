@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "publish": "docker build . --platform linux/amd64 -t yalab/jizo && docker push yalab/jizo"
   },
   "author": "",
   "license": "ISC",
