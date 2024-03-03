@@ -46,8 +46,12 @@ app.event('app_mention', async ({ event, say }) => {
   redis.disconnect()
 });
 
-app.message(async ({ message, say }) => {
+app.message(async ({ message, say, logger }) => {
   if (!message.thread_ts) { return }
+  if (message.text.substring(0, 1) === '#') {
+    logger.debug('これはコメントやから無視しとこか')
+    return
+  }
   await redis.connect()
   const str = await redis.get(String(message.thread_ts))
   if (!str) { return }
