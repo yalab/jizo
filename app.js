@@ -25,7 +25,7 @@ const app = new App({
     },
   ]
 });
-
+const dyingMessage = 'Help me. I have died....'
 const postOpenAI = async (messages) => {
   const chatCompletion = await openai.chat.completions.create({
       messages: messages,
@@ -38,7 +38,14 @@ const postOpenAI = async (messages) => {
 app.event('app_mention', async ({ event, say }) => {
   const thread_ts = event.thread_ts ? event.thread_ts : event.ts;
   const message = { role: 'user', content: event.text.substring(15) }
-  await redis.connect()
+  try {
+    await redis.connect()
+  } catch (e) {
+    if (e.message !== 'Socket already opened' ) {
+      say(dyingMessage)
+      console.error(e);
+    }
+  }
   const text = await postOpenAI([message])
   redis.set(String(thread_ts), JSON.stringify([message, { role: 'assistant', content: text}]), 3600)
   await say({ text: text, thread_ts: thread_ts });
@@ -69,6 +76,7 @@ app.message(async ({ message, say, logger }) => {
     await redis.disconnect();
   } catch (e) {
     if(e.message !== 'The client is closed') {
+      say(dyingMessage)
       console.error(e);
     }
   }
