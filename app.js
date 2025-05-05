@@ -29,7 +29,7 @@ const dyingMessage = 'Help me. I have died....'
 const postOpenAI = async (messages) => {
   const chatCompletion = await openai.chat.completions.create({
       messages: messages,
-      model: 'gpt-4o',
+      model: process.env.OPENAI_MODEL || 'gpt-4o',
   })
   const message = chatCompletion.choices[0].message
   return message.content
