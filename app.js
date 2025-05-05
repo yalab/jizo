@@ -26,13 +26,24 @@ const app = new App({
   ]
 });
 const dyingMessage = 'Help me. I have died....'
+const regGenereteImage = /画像を(作っ|つくっ|生成し|せいせいし)て(.|。| )*/i
 const postOpenAI = async (messages) => {
-  const chatCompletion = await openai.chat.completions.create({
-      messages: messages,
-      model: process.env.OPENAI_MODEL || 'gpt-4o',
-  })
-  const message = chatCompletion.choices[0].message
-  return message.content
+  const lastMessage = messages[messages.length - 1]
+  if (lastMessage.content.match(regGenereteImage)) {
+    const response = await openai.images.generate({
+      prompt: lastMessage.content,
+      n: 1,
+      size: "512x512"
+    });
+    return response.data[0].url
+  } else {
+    const chatCompletion = await openai.chat.completions.create({
+        messages: messages,
+        model: process.env.OPENAI_MODEL || 'gpt-4o',
+    })
+    const message = chatCompletion.choices[0].message
+    return message.content
+  }
 }
 
 app.event('app_mention', async ({ event, say }) => {
